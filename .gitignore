@@ -1,0 +1,6 @@
+*.rngs
+*.ngph
+@*
+catalog
+test_*
+.depend

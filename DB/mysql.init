@@ -1,0 +1,20 @@
+#	#mysqladmin create vitrite
+DROP TABLE attr;
+
+#alter table attr add ringset text;  #
+#alter table attr add ringset_t int; #mod time 
+#alter table attr drop rd;
+#alter table attr add rd float;
+
+CREATE TABLE attr (
+   id int(10) UNSIGNED NOT NULL,
+   ord int(10) UNSIGNED NOT NULL auto_increment,
+   graph    text DEFAULT '',
+   cdate    text,
+   mdate    text,
+   PRIMARY KEY (ord)
+);
+
+GRANT Select,Update,Insert,Delete ON vitrite.* TO matto@localhost IDENTIFIED BY 'vitrite';
+
+#password for matto is vitrite

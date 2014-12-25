@@ -1,0 +1,12 @@
+include ../../Makefile.settings
+LDFLAGS=-static -lm -ldb-4.3 #3
+RECIPE		=./RECIPE-C
+CFLAGS		:=-g $(CFLAGS) -I./$(RECIPE)
+
+depend: $(wildcard *.c *.h)
+	$(CPP) -MM $^ > .depend
+clean:
+	-rm *.o $(BINTARGET)
+install: $(TARGET)
+	install -m 0755 -o $(USER) -d $(LIBPATH)
+	install -m 0755 -o $(USER) $(TARGET) $(LIBPATH)
