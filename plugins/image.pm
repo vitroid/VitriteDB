@@ -10,7 +10,7 @@ use vitrite::attrdb qw(ProtectSymbols);
 my $MYNAME="vitrite.cgi";
 my $RELURL = "/cgi-bin/$MYNAME";
 my $BINDIR = "/usr/local/lib/vitrite";
-my $IMAGEPATH = "/var/www/vitrite";
+my $IMAGEPATH = "/Library/WebServer/Documents/vitrite";
 my $IMAGEURL = "/vitrite";
 
 

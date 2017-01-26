@@ -1,7 +1,7 @@
-USER=www-data
-CGIBASE=/usr/lib/cgi-bin
-URLBASE=/var/www/vitrite
+USER=www
+CGIBASE=/Library/WebServer/CGI-Executables
+URLBASE=/Library/WebServer/Documents/vitrite
 LIBPATH=/usr/local/lib/vitrite
-PERLLIBPATH=/usr/local/lib/site_perl/vitrite
-DBPATH=/var/db/vitrite
+PERLLIBPATH=/Library/Perl/5.18/vitrite
+DBPATH="/Library/Application Support/vitrite"
 

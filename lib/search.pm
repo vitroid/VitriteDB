@@ -29,25 +29,25 @@ my $IMAGEURL = "/vitrite";
 
 
 
-#¸¡º÷¾ò·ï¤Ïcgi param¤Ë¤ÆÍ¿¤¨¤é¤ì¤ë¡£
-#cgi param¤òSQL¤ËËİÌõ¤·¡¢¸¡º÷¤·¡¢·ë²Ì¤ò¥ê¥¹¥ÈÉ½¼¨¤¹¤ë¡£
-#¤³¤ì°ÊÁ°¤ÎÉôÊ¬¤Ï1¤Ä¤Î¥Õ¥é¥°¥á¥ó¥È¤ÎÉ½¼¨¤È¤·¤Æ´°·ë¤·¤Æ¤¤¤ë¤Î¤Ç¡¢
-#¤³¤Î¥ë¡¼¥Á¥ó¤ÏÊÌ¥â¥¸¥å¡¼¥ë¤ËÊ¬¤±¤ë¤Ù¤­¤À¤í¤¦¡£
+#æ¤œç´¢æ¡ä»¶ã¯cgi paramã«ã¦ä¸ãˆã‚‰ã‚Œã‚‹ã€‚
+#cgi paramã‚’SQLã«ç¿»è¨³ã—ã€æ¤œç´¢ã—ã€çµæœã‚’ãƒªã‚¹ãƒˆè¡¨ç¤ºã™ã‚‹ã€‚
+#ã“ã‚Œä»¥å‰ã®éƒ¨åˆ†ã¯1ã¤ã®ãƒ•ãƒ©ã‚°ãƒ¡ãƒ³ãƒˆã®è¡¨ç¤ºã¨ã—ã¦å®Œçµã—ã¦ã„ã‚‹ã®ã§ã€
+#ã“ã®ãƒ«ãƒ¼ãƒãƒ³ã¯åˆ¥ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã«åˆ†ã‘ã‚‹ã¹ãã ã‚ã†ã€‚
 sub SearchResults{
     my ( $cgi, $db, $plugins, $inxml ) = @_;
     #print STDERR "SearchResults\n";
-    #ÉÔÀµ¤Ê¾ò·ï¤¬Í¿¤¨¤é¤ì¤¿»ş¤ÏNULL¤òÊÖ¤¹¡£
+    #ä¸æ­£ãªæ¡ä»¶ãŒä¸ãˆã‚‰ã‚ŒãŸæ™‚ã¯NULLã‚’è¿”ã™ã€‚
     
     # sta: start from
     # rec: number of records to be shown in one screen
     # rev: reverse order
     # srt: sort by
-    # ¤Ş¤º¤Ï¾ò·ï¤Ê¤·¡£id½ç¤Ë½ĞÎÏ¤¹¤ë¡£
+    # ã¾ãšã¯æ¡ä»¶ãªã—ã€‚idé †ã«å‡ºåŠ›ã™ã‚‹ã€‚
 
-    #Æ±¤¸¥Ú¡¼¥¸¤òÉ½¼¨¤¹¤ë¤¿¤á¤Î¡¢CGI¥Ñ¥é¥á¡¼¥¿·²
+    #åŒã˜ãƒšãƒ¼ã‚¸ã‚’è¡¨ç¤ºã™ã‚‹ãŸã‚ã®ã€CGIãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ç¾¤
     my %p;
 
-    #sort¤Ë»È¤¨¤ë¥­¡¼¤ò¡¢³Æplugin¤ËÌä¤¤¤¢¤ï¤»¤ë¡£
+    #sortã«ä½¿ãˆã‚‹ã‚­ãƒ¼ã‚’ã€å„pluginã«å•ã„ã‚ã‚ã›ã‚‹ã€‚
     my @keys;
     my %keys;
     foreach my $plugin ( values %{$plugins} ){
@@ -57,13 +57,13 @@ sub SearchResults{
 	$keys{$sortkeys} = 1;
     }
     @keys = ( "id", "image", @keys );
-    #¥­¡¼¤ÎÌ¾¾Î¤ò¡¢³Æplugin¤ËÌä¤¤¤¢¤ï¤»¤ë¡£
+    #ã‚­ãƒ¼ã®åç§°ã‚’ã€å„pluginã«å•ã„ã‚ã‚ã›ã‚‹ã€‚
     my @labels = ("ID","image");
     foreach my $plugin ( values %{$plugins} ){
 	push @labels, $plugin->keylabel();
     }
 
-    #É½¼¨½ç½ø¤Î»ØÄê¡£
+    #è¡¨ç¤ºé †åºã®æŒ‡å®šã€‚
     my $reverse = $cgi->param("rev") + 0; # ? "DESC" : "ASC";
     my $asc = $reverse ? "DESC" : "ASC";
 
@@ -74,13 +74,13 @@ sub SearchResults{
     }
 
 
-    #¶è´Ö¤Î½èÍı¡£
+    #åŒºé–“ã®å‡¦ç†ã€‚
     my $start = $cgi->param("sta") + 0;
 
     my $records = $cgi->param("rec") + 0;
     if ( $cgi->param("form") =~ /xml/i ){
 	#
-	#»ØÄê¤¬¤Ê¤±¤ì¤Ğ1000¸Ä.
+	#æŒ‡å®šãŒãªã‘ã‚Œã°1000å€‹.
 	#still, it is unlimited if number is specified.
 	#It is fail-safe for bad query.
 	#
@@ -90,19 +90,19 @@ sub SearchResults{
     }
     else{
 	#
-	#»ØÄê¤¬¤Ê¤±¤ì¤Ğ50¸ÄÉ½¼¨
+	#æŒ‡å®šãŒãªã‘ã‚Œã°50å€‹è¡¨ç¤º
 	#
 	if ( $records == 0 || 50 < $records ){
 	    $records = 50;
 	}
     }
     my $limit;
-    #ÌµÀ©¸Â¤Î¾ì¹ç¤Ïstart¤âÌµ»ë¤¹¤ë¡£
+    #ç„¡åˆ¶é™ã®å ´åˆã¯startã‚‚ç„¡è¦–ã™ã‚‹ã€‚
     if ( 0 < $records ){
 	$limit = "LIMIT $start, $records";
     }
 
-    #¾ò·ï¤ÎÆÉ¤ß¹ş¤ß¡£
+    #æ¡ä»¶ã®èª­ã¿è¾¼ã¿ã€‚
     my %operators = ( "eq"=>"=",
 		      "ne"=>"!=",
 		      "lt"=>"<",
@@ -112,7 +112,7 @@ sub SearchResults{
     my @cond;
     foreach my $x ( 1..5 ){
 	if ( "" ne $cgi->param("val$x") ){
-	    #parameter¤ÇÍ¿¤¨¤é¤ì¤¿Ê¸»úÎó¤ò¤½¤Î¤Ş¤ŞSQL¤ËÅÏ¤¹¤Èsecurity hole¤Ë¤Ê¤ë¡£
+	    #parameterã§ä¸ãˆã‚‰ã‚ŒãŸæ–‡å­—åˆ—ã‚’ãã®ã¾ã¾SQLã«æ¸¡ã™ã¨security holeã«ãªã‚‹ã€‚
 	    my $valx = $cgi->param("val$x");
 	    my $keyx = $cgi->param("key$x");
 	    my $opx  = $cgi->param("op$x");
@@ -125,7 +125,7 @@ sub SearchResults{
 		$valx += 0; #sanitize
 		push @cond ,  $keyx . $operators{$opx} . $valx;
 	    }
-	    #form¤ò²ğ¤µ¤º¤Ë¸¡º÷¤ò¹Ô¤¦¾ì¹ç¤Ë%p¤ò»ÈÍÑ¤¹¤ë¡£
+	    #formã‚’ä»‹ã•ãšã«æ¤œç´¢ã‚’è¡Œã†å ´åˆã«%pã‚’ä½¿ç”¨ã™ã‚‹ã€‚
 	    $p{"key$x"} = $keyx;
 	    $p{"op$x"}  = $opx;
 	    $p{"val$x"} = $valx;
@@ -140,7 +140,7 @@ sub SearchResults{
     my $sql;
     my $keys = join(",", @keys );
     if ( $inxml ){
-	#xml¤Î¾ì¹ç¤Ï¡¢»ØÄê¤µ¤ì¤¿field¤Î¤ß¤òÃê½Ğ¤¹¤ë¡£
+	#xmlã®å ´åˆã¯ã€æŒ‡å®šã•ã‚ŒãŸfieldã®ã¿ã‚’æŠ½å‡ºã™ã‚‹ã€‚
 	$keys = join(",", @{$inxml});
     }
     #get number of matches in advance
@@ -152,7 +152,7 @@ sub SearchResults{
     $sth->finish;
 
     $sql = "SELECT $keys FROM attr $cond ORDER BY $sort $asc $limit";
-    print STDERR "$sql DEBUG\n";
+    #print STDERR "$sql DEBUG\n";
     my $sth = $db->prepare( $sql );
     $sth->execute;
 
@@ -163,7 +163,7 @@ sub SearchResults{
     $p{q} =   "Search"; #dummy data for test
 
     if ( $inxml ){
-	#$inxml¤Ï¼Â¤Ïxml½ĞÎÏ¤¹¤Ù¤­¥Õ¥£¡¼¥ë¥É¤ÎÇÛÎó¤Ø¤Î»²¾È
+	#$inxmlã¯å®Ÿã¯xmlå‡ºåŠ›ã™ã¹ããƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã®é…åˆ—ã¸ã®å‚ç…§
 	my @s;
 	#compose values
 	while ( my $record = $sth->fetchrow_hashref ){
@@ -208,11 +208,11 @@ sub SearchResults{
 	foreach my $key ( @keys ){
 	    my %newp = %p;
 	    if ( $sort eq $key ){
-		#µÕ¥½¡¼¥È¤Ë¤¹¤ë¡£
+		#é€†ã‚½ãƒ¼ãƒˆã«ã™ã‚‹ã€‚
 		$newp{rev} = 1-$newp{rev};
 	    }
 	    else{
-		#¤½¤ì¤ò¿·¤·¤¤¥½¡¼¥È¥­¡¼¤Ë¤¹¤ë
+		#ãã‚Œã‚’æ–°ã—ã„ã‚½ãƒ¼ãƒˆã‚­ãƒ¼ã«ã™ã‚‹
 		$newp{srt} = $key;
 		#print STDERR "SORT KEY $sort -> $key\n";
 	    }

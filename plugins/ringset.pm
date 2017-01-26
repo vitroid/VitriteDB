@@ -71,7 +71,6 @@ sub make {
     my @lines = <IN>;
     close IN;
     unlink $tmp;
-
     my $ringset = from_rngs( @lines );
     $record->{ringset} = $ringset;
     return $ringset;
@@ -92,7 +91,7 @@ sub from_rngs{
 	    $rngs->{size} = 0 + shift @s;
 	    while( 0<= $#s ){
 		$_ = shift @s;
-		split;
+		@_ = split;
 		my $size = shift @_;
 		last if $size <= 0;
 		push @{$rngs->{ring}}, [ @_ ];

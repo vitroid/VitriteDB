@@ -36,14 +36,14 @@ sub make {
     print STDERR "I am ringcount.\n";
     my @ringcount;
     foreach my $ring ( @{$record->{ringset}{ring}} ){
-	my $size = 1 + $#{$ring};
-	$ringcount[$size]++;
+        my $size = 1 + $#{$ring};
+        $ringcount[$size]++;
     }
     shift @ringcount;
     shift @ringcount;
     shift @ringcount;
     for(my $i=0; $i<=8-3;$i++){
-	$ringcount[$i] ||= 0;
+        $ringcount[$i] ||= 0;
     }
     
     $record->{ringcount} = [ @ringcount ];
@@ -60,8 +60,8 @@ sub to_html{
     my @ringcount = @{$record->{ringcount}};
     my @el;
     foreach my $i ( 0 .. $#ringcount ){
-	push @el, $cgi->dt($i+3)
-	    .     $cgi->dd($ringcount[$i]);
+        push @el, $cgi->dt($i+3)
+            .     $cgi->dd($ringcount[$i]);
     }
     $html .= $cgi->dl(@el);
     $html;
@@ -73,7 +73,7 @@ sub to_sql{
     my ( $self, $value ) = @_;
     my @s;
     foreach my $i ( 3..8 ){
-	push @s, "ring$i='" . ProtectSymbols($value->[$i-3]) . "'";
+        push @s, "ring$i='" . ProtectSymbols($value->[$i-3]) . "'";
     }
     push @s, $self->name() . "='" . ProtectSymbols(join(" ", @{$value})) . "'";
     return join(",", @s);
@@ -94,7 +94,7 @@ sub to_xml{
     my $r = $record->{ringcount};
     my @s;
     foreach my $i ( 0..5 ){
-	push @s, $xmlg->count({size=>$i+3},$r->[$i]);
+        push @s, $xmlg->count({size=>$i+3},$r->[$i]);
     }
     return $xmlg->ringcount(@s);
 }

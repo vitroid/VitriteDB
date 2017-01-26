@@ -1,5 +1,5 @@
 include ../../Makefile.settings
-LDFLAGS=-static -lm -ldb-4.3 #3
+LDFLAGS= -lm -ldb -lmd
 RECIPE		=./RECIPE-C
 CFLAGS		:=-g $(CFLAGS) -I./$(RECIPE)
 

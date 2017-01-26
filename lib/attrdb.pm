@@ -83,7 +83,7 @@ sub attrdb_scan2{
 	}
 	my $sql = join(",", @{$record->{save}});
 	if ( $sql ne "" ){
-	    print STDERR "SET $sql\n";
+	    #print STDERR "SET $sql\n";
 	    attrdb_update_attribute( $db, $id, $sql );
 	}
 	#print STDERR $record->{isvitrite}, ":attrdb.pm+89\n";
@@ -131,15 +131,15 @@ sub attrdb_insert_graph{
 	my $rows = $sth->rows;
 	my $record = $sth->fetchrow_array;
 	$sth->finish;
-	print STDERR "LAST: $record\n";
+	#print STDERR "LAST: $record\n";
 	return $record;
     }
     else{
 	my $sql = "INSERT attr SET " . join( ", ", @setstring );
 	$sql .= ", id=$id";
-	print STDERR $sql, "\n";
+	#print STDERR $sql, "\n";
 	$db->do( $sql );
-	print STDERR $id, "\n";
+	#print STDERR $id, "\n";
 	return $id;
     }
 }
@@ -191,7 +191,7 @@ sub compile_ranges{
 	}
     }
     my $sql = "(" . join( " OR ", @or ) . ")";
-    print STDERR $sql, " RANGE\n";
+    #print STDERR $sql, " RANGE\n";
     return $sql;
 }
 

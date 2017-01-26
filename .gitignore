@@ -4,3 +4,4 @@
 catalog
 test_*
 .depend
+*.o

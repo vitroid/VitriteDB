@@ -13,9 +13,9 @@
 #include "Isomorph.h"
 #include "SimpleGraph.h"
 
-/*$B$$$h$$$h(BDB$B$r9=@.$9$k!#(Bdbopen$B$r$=$N$^$^;HMQ$9$k!#(B*/
-/*key$B$K$O%9%Z%/%H%k$r!"CM$K$ONY@\>pJs$r;HMQ$9$k!#(B*/
-/*$B0[$J$k%0%i%U$,F1$8%9%Z%/%H%k$r@8$`2DG=@-$b$"$k$>!#$=$N>l9g$O!"(Bvalue$B$rJ#?t;}$F$k$h$&$K$7$F!"=g<!>H9g$9$k$7$+$J$$$N$@$m$&$+!#(B*/
+/*いよいよDBを構成する。dbopenをそのまま使用する。*/
+/*keyにはスペクトルを、値には隣接情報を使用する。*/
+/*異なるグラフが同じスペクトルを生む可能性もあるぞ。その場合は、valueを複数持てるようにして、順次照合するしかないのだろうか。*/
 
 void
 db_open(DB_ENV *dbenv, DB **dbp, char *name, int dups)
@@ -24,13 +24,13 @@ db_open(DB_ENV *dbenv, DB **dbp, char *name, int dups)
     int ret;
     /* Create the database handle. */
     if ((ret = db_create(&db, dbenv, 0)) != 0) {
-	dbenv->err(dbenv, ret, "db_create");
-	exit (1);
+        dbenv->err(dbenv, ret, "db_create");
+        exit (1);
     }
     /* Optionally, turn on duplicate data items. */
     if (dups && (ret = db->set_flags(db,DB_DUP)) != 0) {
-	dbenv->err(dbenv, ret, "db set_flags: DB_DUP");
-	exit (1);
+        dbenv->err(dbenv, ret, "db set_flags: DB_DUP");
+        exit (1);
     }
     /*
      * Open a database in the environment:
@@ -39,15 +39,15 @@ db_open(DB_ENV *dbenv, DB **dbp, char *name, int dups)
      * read/write owner only
      */
     if ((ret = db->open(db, NULL, name, NULL, 
-		       DB_BTREE, DB_CREATE | DB_THREAD, S_IRUSR | S_IWUSR)) != 0) {
-	dbenv->err(dbenv, ret, "db open: %s", name);
-	exit (1);
+                       DB_BTREE, DB_CREATE | DB_THREAD, S_IRUSR | S_IWUSR)) != 0) {
+        dbenv->err(dbenv, ret, "db open: %s", name);
+        exit (1);
     }
     *dbp = db;
 }
 
-/*$B%0%i%U$,L58~$G%5%$%:$,>.$5$$(B(254$B%N!<%I0J2<(B)$B$H2>Dj$7$F%7%j%"%i%$%:(B*/
-/*NGPH$BN`;w$N%G!<%?7A<0$KLa$9!#(B*/
+/*グラフが無向でサイズが小さい(254ノード以下)と仮定してシリアライズ*/
+/*NGPH類似のデータ形式に戻す。*/
 int Serialize(int count, int size, int* nnei, int* nei, char* buf)
 {
     char* p=buf;
@@ -60,15 +60,15 @@ int Serialize(int count, int size, int* nnei, int* nei, char* buf)
     
     *(p++) = size;
     for(i=0;i<size;i++){
-	int j;
-	for(j=0;j<nnei[i];j++){
-	    int k;
-	    k=nei[j*size+i];
-	    if(i<k){
-		*(p++)=i;
-		*(p++)=k;
-	    }
-	}
+        int j;
+        for(j=0;j<nnei[i];j++){
+            int k;
+            k=nei[j*size+i];
+            if(i<k){
+                *(p++)=i;
+                *(p++)=k;
+            }
+        }
     }
     *(p++)='\255';
     return p-buf;
@@ -86,16 +86,16 @@ char* Unserialize(char* ptr, int* count, int* size, int* nnei, int* nei)
     ptr += sizeof(int);
     *size = *(ptr++);
     if(nnei==NULL)
-	return;
+        return NULL;
     for (i=0; i<*size; i++) {
-	nnei[i] = 0;
+        nnei[i] = 0;
     }
     while((*ptr)!='\255'){
-	int j,k;
-	j = *(ptr++);
-	k = *(ptr++);
-	PushUnique( nei, nnei, *size, j, k );
-	PushUnique( nei, nnei, *size, k, j );
+        int j,k;
+        j = *(ptr++);
+        k = *(ptr++);
+        PushUnique( nei, nnei, *size, j, k );
+        PushUnique( nei, nnei, *size, k, j );
     }
     return ptr;
 }
@@ -111,13 +111,13 @@ env_dir_create(char* envdir)
  * wrong type.
  */
     if (stat(envdir, &sb) == 0)
-	return;
+        return;
 /* Create the directory, read/write/access owner only. */
     if (mkdir(envdir, S_IRWXU) != 0) {
-	fprintf(stderr,
-		"txnapp: mkdir: %s: %s\n", envdir,
-		strerror(errno));
-	exit (1);
+        fprintf(stderr,
+                "txnapp: mkdir: %s: %s\n", envdir,
+                strerror(errno));
+        exit (1);
     }
 }
 
@@ -128,9 +128,9 @@ env_open(DB_ENV **dbenvp, char* envdir, unsigned int cachesize)
     int ret;
 /* Create the environment handle. */
     if ((ret = db_env_create(&dbenv, 0)) != 0) {
-	fprintf(stderr,
-		"txnapp: db_env_create: %s\n", db_strerror(ret));
-	exit (1);
+        fprintf(stderr,
+                "txnapp: db_env_create: %s\n", db_strerror(ret));
+        exit (1);
     }
 /* Set up error handling. */
     dbenv->set_errpfx(dbenv, "txnapp");
@@ -144,16 +144,16 @@ env_open(DB_ENV **dbenvp, char* envdir, unsigned int cachesize)
  */
 /*
   if ((ret = dbenv->open(dbenv, envdir,
-			  DB_CREATE | DB_INIT_LOCK | DB_INIT_LOG |
-			  DB_INIT_MPOOL | DB_INIT_TXN | DB_RECOVER
-			  | DB_THREAD,
-			  S_IRUSR | S_IWUSR)) != 0) {*/
+                          DB_CREATE | DB_INIT_LOCK | DB_INIT_LOG |
+                          DB_INIT_MPOOL | DB_INIT_TXN | DB_RECOVER
+                          | DB_THREAD,
+                          S_IRUSR | S_IWUSR)) != 0) {*/
     if ((ret = dbenv->open(dbenv, envdir,
                            DB_CREATE | DB_INIT_LOCK | DB_INIT_MPOOL | DB_THREAD| DB_PRIVATE ,
-			  S_IRUSR | S_IWUSR)) != 0) {
-	dbenv->err(dbenv, ret,
-		  "dbenv open: %s", envdir);
-	exit (1);
+                          S_IRUSR | S_IWUSR)) != 0) {
+        dbenv->err(dbenv, ret,
+                  "dbenv open: %s", envdir);
+        exit (1);
     }
     *dbenvp = dbenv;
 }
@@ -163,7 +163,7 @@ env_open(DB_ENV **dbenvp, char* envdir, unsigned int cachesize)
 /*addRecord is removed and put in scratch*/
 
 
-/*txn$B$r;H$o$J$1$l$P$I$&$J$k$+!#(Blog.*$B$NGS=P$r$d$a$l$PAjEvB.$/$G$-$k$O$:!#(B*/
+/*txnを使わなければどうなるか。log.*の排出をやめれば相当速くできるはず。*/
 int addRecord2(DB_ENV *dbenv, DB* db, int* gkey, int size, int* nnei, int* nei, int gcount)
 {
     DBT key, value, newvalue;
@@ -175,7 +175,7 @@ int addRecord2(DB_ENV *dbenv, DB* db, int* gkey, int size, int* nnei, int* nei, 
     int fail=0;
     int retryCount=0;
 
-    /*gcount==0$B$N>l9g$O!"=q$-$3$^$:$K8D?t$r(Breturn$B$9$k$N$_!#(B*/
+    /*gcount==0の場合は、書きこまずに個数をreturnするのみ。*/
     /*initialization*/
     memset(&key, 0, sizeof(key));
     memset(&value, 0, sizeof(value));
@@ -196,86 +196,86 @@ retry:
     ret = db->cursor(db, NULL, &dbc, 0);
     getflag = DB_SET;
     for(;;){
-	switch(	ret = dbc->c_get(dbc, &key, &value, getflag)){
-	case 0:
-	    /*found*/
-	    /*lookup the dup records*/
-	    //printf("Found.");
-	    {
-		int rsize;
-		int rnei[size*10*sizeof(int)];
-		int rnnei[size*sizeof(int)];
-		Unserialize(value.data, &count, &rsize, rnnei, rnei);
-		/*printf("%d %d:%d\n",count,size,rsize);*/
-		if((rsize==size) && Isomorph(size,nnei,nei,rnnei,rnei)){
-		    count+=gcount;
-		    //printf("Isomorph.%d ",count);
-		    if(value.data!=NULL)
-			free(value.data);
-		    /*create the new data item.*/
-		    //showSpectrum(size, key.data);
-		    //newvalue.data="data";  //malloc(sizeof(int)*size*10);/*estimated*/
-		    //newvalue.size=strlen("data")+1;//Serialize(1,size,nnei,nei,&newvalue.data);
-		    putflag = DB_CURRENT;
-		    /*exit loop and update*/
-		    goto put;
-		}else{
-		    /*find next*/
+        switch(        ret = dbc->c_get(dbc, &key, &value, getflag)){
+        case 0:
+            /*found*/
+            /*lookup the dup records*/
+            //printf("Found.");
+            {
+                int rsize;
+                int rnei[size*10*sizeof(int)];
+                int rnnei[size*sizeof(int)];
+                Unserialize(value.data, &count, &rsize, rnnei, rnei);
+                /*printf("%d %d:%d\n",count,size,rsize);*/
+                if((rsize==size) && Isomorph(size,nnei,nei,rnnei,rnei)){
+                    count+=gcount;
+                    //printf("Isomorph.%d ",count);
+                    if(value.data!=NULL)
+                        free(value.data);
+                    /*create the new data item.*/
+                    //showSpectrum(size, key.data);
+                    //newvalue.data="data";  //malloc(sizeof(int)*size*10);/*estimated*/
+                    //newvalue.size=strlen("data")+1;//Serialize(1,size,nnei,nei,&newvalue.data);
+                    putflag = DB_CURRENT;
+                    /*exit loop and update*/
+                    goto put;
+                }else{
+                    /*find next*/
 
-		    retryCount ++;
+                    retryCount ++;
                     /*same key=same spectrum, but different graph*/
-		    //fprintf(stderr,"(%d:%d)",retryCount,size);
-		    getflag = DB_NEXT_DUP;
-		    /*scan next*/
-		    break;
-		}
-	    }
-	    break;
-	case DB_NOTFOUND:
-	    /*not found*/
-	    //printf("Not found.");
-	    putflag = DB_KEYFIRST;
-	    count=gcount;
-	    goto put;
-	default:
-	    /* Error: run recovery. */
-	    dbenv->err(
-		dbenv, ret, "dbc get");
-	    exit (1);
-	}/*switch*/
+                    //fprintf(stderr,"(%d:%d)",retryCount,size);
+                    getflag = DB_NEXT_DUP;
+                    /*scan next*/
+                    break;
+                }
+            }
+            break;
+        case DB_NOTFOUND:
+            /*not found*/
+            //printf("Not found.");
+            putflag = DB_KEYFIRST;
+            count=gcount;
+            goto put;
+        default:
+            /* Error: run recovery. */
+            dbenv->err(
+                dbenv, ret, "dbc get");
+            exit (1);
+        }/*switch*/
     }/*for*/
 put:
     if(gcount){
-	char data[sizeof(int)*size*10];
-	newvalue.data=data;
-	newvalue.size=Serialize(count,size,nnei,nei,newvalue.data);
-	switch((ret=dbc->c_put(dbc, &key,&newvalue,putflag)))
-	{
-	    int t_ret;
-	case 0:
-	    /*close transaction*/
-	    break;
-	case DB_LOCK_DEADLOCK:
-	default:
-	    /* Retry the operation. */
-	    if ((t_ret = dbc->c_close(dbc)) != 0) {
-		dbenv->err( dbenv, t_ret, "dbc->c_close");
-		exit (1);
-	    }
-	    if (++fail == MAXIMUM_RETRY) 
-		/*emergency stop*/
-		exit(2);
-	    //goto retry;
-	    goto retry;
-	}
+        char data[sizeof(int)*size*10];
+        newvalue.data=data;
+        newvalue.size=Serialize(count,size,nnei,nei,newvalue.data);
+        switch((ret=dbc->c_put(dbc, &key,&newvalue,putflag)))
+        {
+            int t_ret;
+        case 0:
+            /*close transaction*/
+            break;
+        case DB_LOCK_DEADLOCK:
+        default:
+            /* Retry the operation. */
+            if ((t_ret = dbc->c_close(dbc)) != 0) {
+                dbenv->err( dbenv, t_ret, "dbc->c_close");
+                exit (1);
+            }
+            if (++fail == MAXIMUM_RETRY) 
+                /*emergency stop*/
+                exit(2);
+            //goto retry;
+            goto retry;
+        }
     } 
     /* Success: commit the change. */
     if ((ret = dbc->c_close(dbc)) != 0) { 
-	dbenv->err(dbenv, ret, "dbc->c_close");
-	exit (1);
+        dbenv->err(dbenv, ret, "dbc->c_close");
+        exit (1);
     }
     /* do not close db */
-    /*$B99?78e$N(Bcount$B$rJV$9!#(B*/
+    /*更新後のcountを返す。*/
     return count;
 }
 
@@ -284,10 +284,10 @@ void SaveNGPH(int size,int* nnei,int* nei)
     int i;
     printf("@NGPH\n%d\n",size);
     for(i=0;i<size;i++){
-	int j;
-	for(j=0;j<nnei[i];j++){
-	    printf("%d %d\n",i,nei[j*size+i]);
-	}
+        int j;
+        for(j=0;j<nnei[i];j++){
+            printf("%d %d\n",i,nei[j*size+i]);
+        }
     }
     printf("-1 -1\n");
 }
@@ -315,39 +315,39 @@ retry:
     ret = db->cursor(db, NULL, &dbc, 0);
     getflag = DB_FIRST;
     for(;;){
-	switch(	ret = dbc->c_get(dbc, &key, &value, getflag)){
-	case 0:
-	    /*found*/
-	    /*lookup the dup records*/
-	    {
-		int rsize;
-		int* rnei;
-		int* rnnei;
-		int count;
-		Unserialize(value.data, &count, &rsize, NULL, rnei);
-		if(rsize>=size){
-		    rnei = malloc(rsize*10*sizeof(int));
-		    rnnei = malloc(rsize*sizeof(int));
-		    Unserialize(value.data, &count, &rsize, rnnei, rnei);
-		    printf("@CNT0\n%d\n",count);
-		    SaveNGPH(rsize,rnnei,rnei);
-		    free(rnnei);
-		    free(rnei);
-		}
-		if(value.data!=NULL)
-		    free(value.data);
-		getflag=DB_NEXT;
-	    }
-	    break;
-	case DB_NOTFOUND:
-	    /*not found*/
-	    goto exit;
-	default:
-	    /* Error: run recovery. */
-	    dbenv->err(
-		dbenv, ret, "dbc get");
-	    exit (1);
-	}/*switch*/
+        switch(        ret = dbc->c_get(dbc, &key, &value, getflag)){
+        case 0:
+            /*found*/
+            /*lookup the dup records*/
+            {
+                int rsize;
+                int* rnei;
+                int* rnnei;
+                int count;
+                Unserialize(value.data, &count, &rsize, NULL, rnei);
+                if(rsize>=size){
+                    rnei = malloc(rsize*10*sizeof(int));
+                    rnnei = malloc(rsize*sizeof(int));
+                    Unserialize(value.data, &count, &rsize, rnnei, rnei);
+                    printf("@CNT0\n%d\n",count);
+                    SaveNGPH(rsize,rnnei,rnei);
+                    free(rnnei);
+                    free(rnei);
+                }
+                if(value.data!=NULL)
+                    free(value.data);
+                getflag=DB_NEXT;
+            }
+            break;
+        case DB_NOTFOUND:
+            /*not found*/
+            goto exit;
+        default:
+            /* Error: run recovery. */
+            dbenv->err(
+                dbenv, ret, "dbc get");
+            exit (1);
+        }/*switch*/
     }/*for*/
 exit:
     /* do not close db */
@@ -367,35 +367,35 @@ db_getnext(DB_ENV *dbenv, DB* db, DBC *dbc, int getflag, int minsize)
     value.flags = DB_DBT_MALLOC;
 
     for(;;){
-	switch(	ret = dbc->c_get(dbc, &key, &value, getflag)){
-	case 0:
-	    /*found*/
-	    /*lookup the dup records*/
-	    {
-		int count;
+        switch(        ret = dbc->c_get(dbc, &key, &value, getflag)){
+        case 0:
+            /*found*/
+            /*lookup the dup records*/
+            {
+                int count;
                 int size;
-		Unserialize(value.data, &count, &size, NULL, NULL);
-		if(size>=minsize){
+                Unserialize(value.data, &count, &size, NULL, NULL);
+                if(size>=minsize){
                     graph = SimpleGraph_New( size );
-		    Unserialize(value.data, &graph->count, &graph->size, graph->nnei, graph->nei);
+                    Unserialize(value.data, &graph->count, &graph->size, graph->nnei, graph->nei);
                     if(value.data!=NULL)
                         free(value.data);
                     return graph;
-		}
-		if(value.data!=NULL)
-		    free(value.data);
-		getflag=DB_NEXT;
-	    }
-	    break;
-	case DB_NOTFOUND:
-	    /*not found*/
-	    goto exit;
-	default:
-	    /* Error: run recovery. */
-	    dbenv->err(
-		dbenv, ret, "dbc get");
-	    exit (1);
-	}/*switch*/
+                }
+                if(value.data!=NULL)
+                    free(value.data);
+                getflag=DB_NEXT;
+            }
+            break;
+        case DB_NOTFOUND:
+            /*not found*/
+            goto exit;
+        default:
+            /* Error: run recovery. */
+            dbenv->err(
+                dbenv, ret, "dbc get");
+            exit (1);
+        }/*switch*/
     }/*for*/
 exit:
     /* do not close db */
@@ -453,36 +453,36 @@ retry:
     ret = fromdb->cursor(fromdb, NULL, &dbc, 0);
     getflag = DB_FIRST;
     for(;;){
-	switch(	ret = dbc->c_get(dbc, &key, &value, getflag)){
-	case 0:
-	    /*found*/
-	    /*lookup the dup records*/
-	    {
-		int rsize;
-		int* rnei;
-		int* rnnei;
-		int count;
-		Unserialize(value.data, &count, &rsize, NULL, rnei);
-		rnei = malloc(rsize*10*sizeof(int));
-		rnnei = malloc(rsize*sizeof(int));
-		Unserialize(value.data, &count, &rsize, rnnei, rnei);
-		addRecord2(dbenv,todb,key.data,rsize, rnnei, rnei, count);
-		free(rnnei);
-		free(rnei);
-		if(value.data!=NULL)
-		    free(value.data);
-		getflag=DB_NEXT;
-	    }
-	    break;
-	case DB_NOTFOUND:
-	    /*not found*/
-	    goto exit;
-	default:
-	    /* Error: run recovery. */
-	    dbenv->err(
-		dbenv, ret, "dbc get");
-	    exit (1);
-	}/*switch*/
+        switch(        ret = dbc->c_get(dbc, &key, &value, getflag)){
+        case 0:
+            /*found*/
+            /*lookup the dup records*/
+            {
+                int rsize;
+                int* rnei;
+                int* rnnei;
+                int count;
+                Unserialize(value.data, &count, &rsize, NULL, rnei);
+                rnei = malloc(rsize*10*sizeof(int));
+                rnnei = malloc(rsize*sizeof(int));
+                Unserialize(value.data, &count, &rsize, rnnei, rnei);
+                addRecord2(dbenv,todb,key.data,rsize, rnnei, rnei, count);
+                free(rnnei);
+                free(rnei);
+                if(value.data!=NULL)
+                    free(value.data);
+                getflag=DB_NEXT;
+            }
+            break;
+        case DB_NOTFOUND:
+            /*not found*/
+            goto exit;
+        default:
+            /* Error: run recovery. */
+            dbenv->err(
+                dbenv, ret, "dbc get");
+            exit (1);
+        }/*switch*/
     }/*for*/
 exit:
     fromdb->close(fromdb, 0);
@@ -503,20 +503,20 @@ int main(int argc, char *argv[])
     env_open(&dbenv);
     db_open(dbenv, &db, "test", 1);
     while(NULL!=fgets(buf,sizeof(buf),stdin)){
-	if(0==strncmp("@NGPH",buf,5)){
-	    int* n=NULL;
-	    int* nn;
-	    int size;
-	    int i;
-	    int* sp;
-	    int* dm;
-	    LoadNGPH(stdin,&nn,&n,&size);
-	    dm = MakeDistanceMatrix(size,nn,n);
-	    sp = DistanceMatrix2Spectrum(size,dm);
-	    addRecord(dbenv,db,sp,size,nn,n,1);
-	    free(dm);
-	    free(sp);
-	}
+        if(0==strncmp("@NGPH",buf,5)){
+            int* n=NULL;
+            int* nn;
+            int size;
+            int i;
+            int* sp;
+            int* dm;
+            LoadNGPH(stdin,&nn,&n,&size);
+            dm = MakeDistanceMatrix(size,nn,n);
+            sp = DistanceMatrix2Spectrum(size,dm);
+            addRecord(dbenv,db,sp,size,nn,n,1);
+            free(dm);
+            free(sp);
+        }
     }
     db->close(db, 0);
 }
