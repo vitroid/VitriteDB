@@ -1,10 +1,10 @@
 include ../../Makefile.settings
-LDFLAGS= -lm -ldb -lmd
+LDFLAGS= -L/usr/local/opt/berkeley-db4/lib -lm -ldb #-lmd
 RECIPE		=./RECIPE-C
-CFLAGS		:=-g $(CFLAGS) -I./$(RECIPE)
+CFLAGS		:=-g $(CFLAGS) -I./$(RECIPE) -I/usr/local/opt/berkeley-db4/include -I/usr/local/opt/openssl/include
 
 depend: $(wildcard *.c *.h)
-	$(CPP) -MM $^ > .depend
+	$(CPP) $(CFLAGS) -MM $^ > .depend
 clean:
 	-rm *.o $(BINTARGET)
 install: $(TARGET)
